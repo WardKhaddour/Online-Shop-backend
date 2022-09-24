@@ -2,7 +2,8 @@ const Product = require('../models/productModel');
 
 exports.getAllProducts = async (req, res, next) => {
   try {
-    const products = await Product.findAll();
+    const products = await Product.fetchAll();
+    console.log(products);
     res.status(200).json({
       status: 'success',
       data: products,
@@ -16,7 +17,7 @@ exports.getProduct = async (req, res, next) => {
   const { productId } = req.params;
   // Product.findAll({ where: { id: productId } })
   try {
-    const product = await Product.findByPk(productId);
+    const product = await Product.findById(productId);
 
     res.status(200).json({
       status: 'success',
@@ -29,7 +30,7 @@ exports.getProduct = async (req, res, next) => {
 
 exports.getIndex = async (req, res, next) => {
   try {
-    const products = await Product.findAll();
+    const products = await Product.fetchAll();
 
     res.status(200).json({
       status: 'success',
@@ -42,8 +43,7 @@ exports.getIndex = async (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
-    const cart = await req.user.getCart();
-    const products = await cart.getProducts();
+    const products = await req.user.getCart();
     res.status(200).json({
       data: products,
     });
@@ -55,25 +55,9 @@ exports.getCart = async (req, res, next) => {
 exports.postCart = async (req, res, next) => {
   try {
     const { productId } = req.body;
-    let newQuantity = 1;
-    const fetchedCart = await req.user.getCart();
-    const products = await fetchedCart.getProducts({
-      where: { id: productId },
-    });
-    let product;
-
-    if (products.length) {
-      product = products[0];
-    }
-    if (product) {
-      //...
-      const oldQuantity = product.cartItem.quantity;
-      newQuantity = oldQuantity + 1;
-    }
-    product = await Product.findByPk(productId);
-    await fetchedCart.addProduct(product, {
-      through: { quantity: newQuantity },
-    });
+    const product = await Product.findById(productId);
+    const result = await req.user.addToCart(product);
+    console.log(result);
     res.status(200).json({ status: 'success' });
   } catch (err) {
     console.log(err);
@@ -84,10 +68,8 @@ exports.deleteFromCart = async (req, res, next) => {
   const { id } = req.body;
 
   try {
-    const cart = await req.user.getCart();
-    const products = await cart.getProducts({ where: { id } });
-    const product = products[0];
-    await product.cartItem.destroy();
+    await req.user.deleteItemFromCart(id);
+
     res.status(200).json({ status: 'success' });
   } catch (err) {
     console.log(err);
@@ -96,16 +78,7 @@ exports.deleteFromCart = async (req, res, next) => {
 
 exports.postOrder = async (req, res, next) => {
   try {
-    const cart = await req.user.getCart();
-    const products = await cart.getProducts();
-    const order = await req.user.createOrder();
-    const productsWithQty = products.map(product => {
-      product.orderItem = { quantity: product.cartItem.quantity };
-      return product;
-    });
-
-    await order.addProducts(productsWithQty);
-    await cart.setProducts(null);
+    await req.user.addOrder();
     res.status(200).json({ status: 'success' });
   } catch (err) {
     console.log(err);
@@ -113,7 +86,7 @@ exports.postOrder = async (req, res, next) => {
 };
 
 exports.getOrders = async (req, res, next) => {
-  const orders = await req.user.getOrders({ include: ['products'] });
+  const orders = await req.user.getOrders();
   res.status(200).json({ status: 'success', data: orders });
 };
 
