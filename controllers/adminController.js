@@ -3,14 +3,13 @@ const Product = require('../models/productModel');
 exports.postAddProduct = async (req, res, next) => {
   const { title, imageUrl, price, description } = req.body;
   try {
-    const product = new Product(
+    const product = new Product({
       title,
       price,
       description,
       imageUrl,
-      null,
-      req.user._id
-    );
+      userId: req.user._id,
+    });
     await product.save();
 
     res.status(200).json({ status: 'success' });
@@ -23,7 +22,11 @@ exports.postEditProduct = async (req, res, next) => {
   try {
     const { id, title, price, imageUrl, description } = req.body;
 
-    const product = new Product(title, price, description, imageUrl, id);
+    const product = await Product.findById(id);
+    product.title = title;
+    product.price = price;
+    product.imageUrl = imageUrl;
+    product.description = description;
     await product.save();
 
     res.status(200).json({ status: 'success' });
@@ -34,8 +37,8 @@ exports.postEditProduct = async (req, res, next) => {
 
 exports.deleteProduct = async (req, res, next) => {
   try {
-    await Product.deleteById(req.body.id);
-    console.log(req.body.id);
+    await Product.findByIdAndRemove(req.body.id);
+
     res.status(200).json({
       status: 'success',
     });
@@ -46,7 +49,8 @@ exports.deleteProduct = async (req, res, next) => {
 
 exports.getProducts = async (req, res, next) => {
   try {
-    const products = await Product.fetchAll();
+    const products = await Product.find().populate('userId');
+    console.log(products);
     res.status(200).json({
       status: 'success',
       data: products,
