@@ -42,6 +42,7 @@ exports.getIndex = async (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
+    console.log(req.user);
     const products = (await req.user.populate('cart.items.productId')).cart
       .items;
     res.status(200).json({
