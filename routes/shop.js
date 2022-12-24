@@ -1,4 +1,5 @@
 const express = require('express');
+const protect = require('../middleware/protect');
 
 const {
   getAllProducts,
@@ -20,14 +21,14 @@ router.get('/products', getAllProducts);
 
 router.get('/products/:productId', getProduct);
 
-router.get('/cart', getCart);
+router.get('/cart', protect, getCart);
 
-router.post('/cart', postCart);
+router.post('/cart', protect, postCart);
 
-router.post('/cart-delete-product', deleteFromCart);
+router.post('/cart-delete-product', protect, deleteFromCart);
 
-router.post('/create-order', postOrder);
+router.post('/create-order', protect, postOrder);
 
-router.get('/orders', getOrders);
+router.get('/orders', protect, getOrders);
 
 module.exports = router;

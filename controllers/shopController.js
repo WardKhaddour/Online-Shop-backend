@@ -42,7 +42,6 @@ exports.getIndex = async (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
-    console.log(req.user);
     const products = (await req.user.populate('cart.items.productId')).cart
       .items;
     res.status(200).json({
@@ -57,8 +56,7 @@ exports.postCart = async (req, res, next) => {
   try {
     const { productId } = req.body;
     const product = await Product.findById(productId);
-    const result = await req.user.addToCart(product);
-    console.log(result);
+    await req.user.addToCart(product);
     res.status(200).json({ status: 'success' });
   } catch (err) {
     console.log(err);
@@ -89,7 +87,7 @@ exports.postOrder = async (req, res, next) => {
     });
     const order = new Order({
       user: {
-        name: req.user.name,
+        email: req.user.email,
         userId: req.user,
       },
       products,

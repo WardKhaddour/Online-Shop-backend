@@ -50,7 +50,6 @@ exports.deleteProduct = async (req, res, next) => {
 exports.getProducts = async (req, res, next) => {
   try {
     const products = await Product.find().populate('userId');
-    console.log(products);
     res.status(200).json({
       status: 'success',
       data: products,

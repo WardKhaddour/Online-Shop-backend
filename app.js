@@ -1,18 +1,25 @@
 const path = require('path');
 const express = require('express');
+const dotenv = require('dotenv');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const ConnectMongoDBSession = require('connect-mongodb-session')(session);
+const cookieParser = require('cookie-parser');
+const csurf = require('csurf');
+const flash = require('connect-flash');
 
-const MongoDB_URI =
-  'mongodb+srv://ward_online_shop:ZtXRUhcXoVRV0JAl@cluster0.lmxpeih.mongodb.net/shop?w=majority';
+dotenv.config({ path: `${__dirname}/.env` });
+
+const MongoDB_URI = process.env.MongoDB_URI;
 
 const app = express();
 const store = new ConnectMongoDBSession({
   uri: MongoDB_URI,
   collection: 'sessions',
 });
+
+const csurfProtection = csurf({ cookie: true });
 
 app.use(
   cors({
@@ -37,24 +44,22 @@ app.use(
 );
 app.use(
   session({
-    secret: 'my secret',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store,
   })
 );
+app.use(cookieParser());
 
-app.use((req, res, next) => {
-  console.log('session', req.session);
-  next();
-});
+app.use(csurfProtection);
+app.use(flash());
 
 app.use(async (req, res, next) => {
   try {
     if (!req.session.user) return next();
     const user = await User.findById(req.session.user._id);
     req.user = user;
-    console.log('USER');
     console.log(user);
     next();
   } catch (err) {
@@ -63,6 +68,9 @@ app.use(async (req, res, next) => {
   }
 });
 
+app.get('/api/getcsrftoken', csurfProtection, (req, res) =>
+  res.json({ csrfToken: req.csrfToken() })
+);
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
@@ -72,18 +80,6 @@ mongoose
   .connect(MongoDB_URI)
   .then(result => {
     console.log('Connected to DB');
-    User.findOne().then(user => {
-      if (!user) {
-        const newUser = new User({
-          name: 'Ward',
-          email: 'ward@example.com',
-          cart: {
-            items: [],
-          },
-        });
-        return newUser.save();
-      }
-    });
   })
   .then(() => {
     app.listen(3000);
