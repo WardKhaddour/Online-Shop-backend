@@ -1,4 +1,3 @@
-const path = require('path');
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -58,11 +57,11 @@ app.use(async (req, res, next) => {
   try {
     if (!req.session.user) return next();
     const user = await User.findById(req.session.user._id);
+    if (!user) return next();
     req.user = user;
     next();
   } catch (err) {
-    console.log(err);
-    next();
+    next(new Error(err));
   }
 });
 
@@ -73,6 +72,13 @@ app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 app.use(get404Page);
+
+app.use((err, req, res, next) => {
+  res.status(500).json({
+    status: 'failed',
+    message: 'An error occurred, please try again later',
+  });
+});
 
 mongoose
   .connect(MongoDB_URI)

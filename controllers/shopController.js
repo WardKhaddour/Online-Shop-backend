@@ -71,7 +71,9 @@ exports.deleteFromCart = async (req, res, next) => {
 
     res.status(200).json({ status: 'success' });
   } catch (err) {
-    console.log(err);
+    const error = new Error(err);
+    error.status = 500;
+    return next(error);
   }
 };
 
@@ -96,11 +98,19 @@ exports.postOrder = async (req, res, next) => {
     req.user.clearCart();
     res.status(200).json({ status: 'success' });
   } catch (err) {
-    console.log(err);
+    const error = new Error(err);
+    error.status = 500;
+    return next(error);
   }
 };
 
 exports.getOrders = async (req, res, next) => {
-  const orders = await Order.find({ 'user.userId': req.user._id });
-  res.status(200).json({ status: 'success', data: orders });
+  try {
+    const orders = await Order.find({ 'user.userId': req.user._id });
+    res.status(200).json({ status: 'success', data: orders });
+  } catch (err) {
+    const error = new Error(err);
+    error.status = 500;
+    return next(error);
+  }
 };

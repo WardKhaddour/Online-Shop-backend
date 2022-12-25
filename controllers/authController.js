@@ -28,7 +28,9 @@ exports.postLogin = async (req, res, next) => {
       Done: 'Done',
     });
   } catch (err) {
-    console.log(err);
+        const error = new Error(err);
+        error.status = 500;
+        return next(error);
   }
 };
 
@@ -52,7 +54,9 @@ exports.postSignup = async (req, res, next) => {
       message: 'success',
     });
   } catch (err) {
-    console.log(err);
+        const error = new Error(err);
+        error.status = 500;
+        return next(error);
   }
 };
 
@@ -97,7 +101,11 @@ exports.resetPassword = async (req, res, next) => {
         console.log('sending mail');
         res.status(200).json({ message: 'email sent successfully' });
       })
-      .catch(err => console.log(err));
+      .catch(err => {
+            const error = new Error(err);
+            error.status = 500;
+            return next(error);
+      });
   });
 };
 
@@ -113,7 +121,9 @@ exports.checkPasswordToken = async (req, res, next) => {
     }
     res.status(200).json({ passwordToken: token, userId: user._id.toString() });
   } catch (err) {
-    console.log(err);
+    const error = new Error(err);
+    error.status = 500;
+    return next(error);
   }
 };
 
@@ -134,6 +144,8 @@ exports.updatePassword = async (req, res, next) => {
     console.log('Done');
     res.status(200).json({ message: 'password changed ' });
   } catch (err) {
-    console.log(err);
+        const error = new Error(err);
+        error.status = 500;
+        return next(error);
   }
 };

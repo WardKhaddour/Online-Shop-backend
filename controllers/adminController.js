@@ -16,10 +16,11 @@ exports.postAddProduct = async (req, res, next) => {
       userId: req.user._id,
     });
     await product.save();
-
     res.status(200).json({ status: 'success' });
   } catch (err) {
-    console.log(err);
+    const error = new Error(err);
+    error.status = 500;
+    return next(error);
   }
 };
 
@@ -43,7 +44,9 @@ exports.postEditProduct = async (req, res, next) => {
 
     res.status(200).json({ status: 'success' });
   } catch (err) {
-    console.log(err);
+    const error = new Error(err);
+    error.status = 500;
+    return next(error);
   }
 };
 
@@ -55,7 +58,9 @@ exports.deleteProduct = async (req, res, next) => {
       status: 'success',
     });
   } catch (err) {
-    console.log(err);
+    const error = new Error(err);
+    error.status = 500;
+    return next(error);
   }
 };
 
@@ -69,6 +74,8 @@ exports.getProducts = async (req, res, next) => {
       data: products,
     });
   } catch (err) {
-    console.log(err);
+    const error = new Error(err);
+    error.status = 500;
+    return next(error);
   }
 };
