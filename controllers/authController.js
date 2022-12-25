@@ -3,9 +3,16 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { ObjectId } = require('mongodb');
 const nodemailer = require('nodemailer');
+const { validationResult } = require('express-validator');
 
 exports.postLogin = async (req, res, next) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(422)
+        .json({ message: 'Validation error', errors: errors.array()[0].msg });
+    }
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: 'Credential error' });
@@ -26,15 +33,14 @@ exports.postLogin = async (req, res, next) => {
 };
 
 exports.postSignup = async (req, res, next) => {
-  const { email, password, confirmPassword } = req.body;
-
+  const { email, password } = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(422)
+      .json({ message: 'Validation error', errors: errors.array()[0].msg });
+  }
   try {
-    const userDoc = await User.findOne({ email });
-    if (userDoc) {
-      return res.status(400).json({
-        message: 'email already exists',
-      });
-    }
     const hashedPas = await bcrypt.hash(password, 12);
     const user = new User({
       email,

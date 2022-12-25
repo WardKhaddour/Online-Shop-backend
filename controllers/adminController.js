@@ -1,7 +1,12 @@
 const Product = require('../models/productModel');
+const { validationResult } = require('express-validator');
 
 exports.postAddProduct = async (req, res, next) => {
   const { title, imageUrl, price, description } = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors });
+  }
   try {
     const product = new Product({
       title,
@@ -19,6 +24,10 @@ exports.postAddProduct = async (req, res, next) => {
 };
 
 exports.postEditProduct = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors });
+  }
   try {
     const { id, title, price, imageUrl, description } = req.body;
 
