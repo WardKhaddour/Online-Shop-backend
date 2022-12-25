@@ -23,6 +23,9 @@ exports.postEditProduct = async (req, res, next) => {
     const { id, title, price, imageUrl, description } = req.body;
 
     const product = await Product.findById(id);
+    if (product.userId.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'unauthorized' });
+    }
     product.title = title;
     product.price = price;
     product.imageUrl = imageUrl;
@@ -37,7 +40,7 @@ exports.postEditProduct = async (req, res, next) => {
 
 exports.deleteProduct = async (req, res, next) => {
   try {
-    await Product.findByIdAndRemove(req.body.id);
+    await Product.deleteOne({ _id: req.body.id, userId: req.user._id });
 
     res.status(200).json({
       status: 'success',
@@ -49,7 +52,9 @@ exports.deleteProduct = async (req, res, next) => {
 
 exports.getProducts = async (req, res, next) => {
   try {
-    const products = await Product.find().populate('userId');
+    const products = await Product.find({ userId: req.user._id }).populate(
+      'userId'
+    );
     res.status(200).json({
       status: 'success',
       data: products,

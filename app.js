@@ -53,14 +53,12 @@ app.use(
 app.use(cookieParser());
 
 app.use(csurfProtection);
-app.use(flash());
 
 app.use(async (req, res, next) => {
   try {
     if (!req.session.user) return next();
     const user = await User.findById(req.session.user._id);
     req.user = user;
-    console.log(user);
     next();
   } catch (err) {
     console.log(err);
