@@ -2,6 +2,7 @@ const fs = require('fs');
 const Product = require('../models/productModel');
 const Order = require('../models/orderModel');
 const path = require('path');
+const PDFDocument = require('pdfkit');
 
 exports.getAllProducts = async (req, res, next) => {
   try {
@@ -129,9 +130,28 @@ exports.getInvoice = async (req, res, next) => {
   const invoiceName = `invoice-${orderId}.pdf`;
   const invoicePath = path.join('data', 'invoices', invoiceName);
 
-  const file = fs.createReadStream(invoicePath);
+  const pdfDoc = new PDFDocument();
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `inline; filename="${invoiceName}"`);
   res.setHeader('filename', invoiceName);
-  file.pipe(res);
+  pdfDoc.pipe(fs.createWriteStream(invoicePath));
+  pdfDoc.pipe(res);
+
+  pdfDoc.fontSize(26).text('Invoice', { underline: true });
+  pdfDoc.text('-----------');
+  let totalPrice = 0;
+  order.products.forEach(prod => {
+    totalPrice += prod.quantity * prod.product.price;
+    pdfDoc
+      .fontSize(14)
+      .text(`${prod.product.title}-${prod.quantity}x $${prod.product.price}`);
+  });
+  pdfDoc.text('-----------');
+
+  pdfDoc.fontSize(20).text(`Total price: $${totalPrice}`);
+  pdfDoc.end();
+
+  // const file = fs.createReadStream(invoicePath);
+
+  // file.pipe(res);
 };
