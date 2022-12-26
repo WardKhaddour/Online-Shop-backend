@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -6,7 +7,8 @@ const session = require('express-session');
 const ConnectMongoDBSession = require('connect-mongodb-session')(session);
 const cookieParser = require('cookie-parser');
 const csurf = require('csurf');
-const flash = require('connect-flash');
+// const flash = require('connect-flash');
+const multer = require('multer');
 
 dotenv.config({ path: `${__dirname}/.env` });
 
@@ -19,6 +21,25 @@ const store = new ConnectMongoDBSession({
 });
 
 const csurfProtection = csurf({ cookie: true });
+
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'images');
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString() + '-' + file.originalname);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === 'image/png' ||
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/jpeg'
+  )
+    cb(null, true);
+  else cb(null, false);
+};
 
 app.use(
   cors({
@@ -41,6 +62,11 @@ app.use(
     extended: true,
   })
 );
+
+app.use(multer({ storage: fileStorage, fileFilter }).single('image'));
+
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET,

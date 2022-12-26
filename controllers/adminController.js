@@ -2,12 +2,18 @@ const Product = require('../models/productModel');
 const { validationResult } = require('express-validator');
 
 exports.postAddProduct = async (req, res, next) => {
-  const { title, imageUrl, price, description } = req.body;
+  const { title, price, description } = req.body;
+  const image = req.file;
+  if (!image) {
+    return res.status(422).json({ status: 'failed', data: 'error in image' });
+  }
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log(errors);
     return res.status(422).json({ errors });
   }
   try {
+    const imageUrl = image.path;
     const product = new Product({
       title,
       price,
@@ -20,6 +26,7 @@ exports.postAddProduct = async (req, res, next) => {
   } catch (err) {
     const error = new Error(err);
     error.status = 500;
+    console.log(err);
     return next(error);
   }
 };
@@ -30,15 +37,18 @@ exports.postEditProduct = async (req, res, next) => {
     return res.status(422).json({ errors });
   }
   try {
-    const { id, title, price, imageUrl, description } = req.body;
-
+    const { id, title, price, description } = req.body;
+    const image = req.file;
     const product = await Product.findById(id);
     if (product.userId.toString() !== req.user._id.toString()) {
       return res.status(401).json({ message: 'unauthorized' });
     }
+
     product.title = title;
     product.price = price;
-    product.imageUrl = imageUrl;
+    if (image) {
+      product.imageUrl = image.path;
+    }
     product.description = description;
     await product.save();
 
