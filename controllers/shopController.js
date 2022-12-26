@@ -1,5 +1,7 @@
+const fs = require('fs');
 const Product = require('../models/productModel');
 const Order = require('../models/orderModel');
+const path = require('path');
 
 exports.getAllProducts = async (req, res, next) => {
   try {
@@ -113,4 +115,23 @@ exports.getOrders = async (req, res, next) => {
     error.status = 500;
     return next(error);
   }
+};
+
+exports.getInvoice = async (req, res, next) => {
+  const { orderId } = req.params;
+  const order = await Order.findById(orderId);
+  if (!order) {
+    return next(new Error('No order found!'));
+  }
+  if (!order.user.userId.equals(req.user._id.toString())) {
+    return next(new Error('Unauthorized'));
+  }
+  const invoiceName = `invoice-${orderId}.pdf`;
+  const invoicePath = path.join('data', 'invoices', invoiceName);
+
+  const file = fs.createReadStream(invoicePath);
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="${invoiceName}"`);
+  res.setHeader('filename', invoiceName);
+  file.pipe(res);
 };
