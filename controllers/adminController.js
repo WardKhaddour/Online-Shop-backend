@@ -1,5 +1,6 @@
 const Product = require('../models/productModel');
 const { validationResult } = require('express-validator');
+const { deleteFile } = require('../util/file');
 
 exports.postAddProduct = async (req, res, next) => {
   const { title, price, description } = req.body;
@@ -47,6 +48,7 @@ exports.postEditProduct = async (req, res, next) => {
     product.title = title;
     product.price = price;
     if (image) {
+      deleteFile(product.imageUrl);
       product.imageUrl = image.path;
     }
     product.description = description;
@@ -62,7 +64,12 @@ exports.postEditProduct = async (req, res, next) => {
 
 exports.deleteProduct = async (req, res, next) => {
   try {
-    await Product.deleteOne({ _id: req.body.id, userId: req.user._id });
+    const prodId = req.body.id;
+    const product = await Product.findById(prodId);
+    if (!product) return next(new Error('Product not found'));
+    deleteFile(product.imageUrl);
+
+    await Product.deleteOne({ _id: prodId, userId: req.user._id });
 
     res.status(200).json({
       status: 'success',
