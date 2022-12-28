@@ -4,12 +4,29 @@ const Order = require('../models/orderModel');
 const path = require('path');
 const PDFDocument = require('pdfkit');
 
+const ITEMS_PER_PAGE = 1;
+
 exports.getAllProducts = async (req, res, next) => {
   try {
-    const products = await Product.find();
+    const page = +req.query.page || 1;
+
+    const productsCount = await Product.find().countDocuments();
+    const products = await Product.find()
+      .skip((page - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE);
+    console.log(products.length);
     res.status(200).json({
       status: 'success',
-      data: products,
+      data: {
+        products,
+        productsCount,
+        currentPage: page,
+        hasNextPage: ITEMS_PER_PAGE * page < productsCount,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(productsCount / ITEMS_PER_PAGE),
+      },
     });
   } catch (err) {
     console.log(err);
