@@ -64,12 +64,12 @@ exports.postEditProduct = async (req, res, next) => {
 
 exports.deleteProduct = async (req, res, next) => {
   try {
-    const prodId = req.body.id;
-    const product = await Product.findById(prodId);
+    const { productId } = req.params;
+    const product = await Product.findById(productId);
     if (!product) return next(new Error('Product not found'));
     deleteFile(product.imageUrl);
 
-    await Product.deleteOne({ _id: prodId, userId: req.user._id });
+    await Product.deleteOne({ _id: productId, userId: req.user._id });
 
     res.status(200).json({
       status: 'success',

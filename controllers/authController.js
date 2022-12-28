@@ -130,7 +130,6 @@ exports.checkPasswordToken = async (req, res, next) => {
 exports.updatePassword = async (req, res, next) => {
   try {
     const { newPassword, userId, passwordToken } = req.body;
-    console.log(req.body);
     const user = await User.findOne({
       resetToken: passwordToken,
       resetTokenExpiration: { $gt: Date.now() },

@@ -14,7 +14,7 @@ const router = express.Router();
 router.get('/products', getProducts);
 
 router.post(
-  '/add-product',
+  '/product',
   [
     body('title').isString().isLength({ min: 3 }).trim(),
     body('price').isFloat(),
@@ -23,8 +23,8 @@ router.post(
   postAddProduct
 );
 
-router.post(
-  '/edit-product',
+router.patch(
+  '/product',
   [
     body('title').isString().isLength({ min: 3 }).trim(),
     body('price').isFloat(),
@@ -34,6 +34,6 @@ router.post(
   postEditProduct
 );
 
-router.post('/delete-product', protect, deleteProduct);
+router.delete('/product/:productId', protect, deleteProduct);
 
 module.exports = router;

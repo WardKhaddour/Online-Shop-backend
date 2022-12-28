@@ -26,9 +26,9 @@ router.get('/cart', protect, getCart);
 
 router.post('/cart', protect, postCart);
 
-router.post('/cart-delete-product', protect, deleteFromCart);
+router.delete('/cart/:productId', protect, deleteFromCart);
 
-router.post('/create-order', protect, postOrder);
+router.post('/order', protect, postOrder);
 
 router.get('/orders', protect, getOrders);
 

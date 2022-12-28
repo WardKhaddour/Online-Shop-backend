@@ -14,7 +14,6 @@ exports.getAllProducts = async (req, res, next) => {
     const products = await Product.find()
       .skip((page - 1) * ITEMS_PER_PAGE)
       .limit(ITEMS_PER_PAGE);
-    console.log(products.length);
     res.status(200).json({
       status: 'success',
       data: {
@@ -84,10 +83,10 @@ exports.postCart = async (req, res, next) => {
 };
 
 exports.deleteFromCart = async (req, res, next) => {
-  const { id } = req.body;
+  const { productId } = req.params;
 
   try {
-    await req.user.removeFromCart(id);
+    await req.user.removeFromCart(productId);
 
     res.status(200).json({ status: 'success' });
   } catch (err) {
