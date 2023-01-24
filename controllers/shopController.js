@@ -75,9 +75,16 @@ exports.getCart = async (req, res, next) => {
 exports.postCart = async (req, res, next) => {
   try {
     const { productId } = req.body;
-    const product = await Product.findById(productId);
-    await req.user.addToCart(product);
-    res.status(200).json({ status: 'success' });
+    const userPromise = User.findById(req.userId);
+    const productPromise = Product.findById(productId);
+    Promise.all([productPromise, userPromise])
+      .then(values => {
+        const [product, user] = values;
+        return user.addToCart(product);
+      })
+      .then(() => {
+        res.status(200).json({ status: 'success' });
+      });
   } catch (err) {
     console.log(err);
   }
@@ -99,8 +106,9 @@ exports.deleteFromCart = async (req, res, next) => {
 
 exports.postOrder = async (req, res, next) => {
   try {
+    const user = await User.findById(req.userId);
     const products = (
-      await req.user.populate('cart.items.productId')
+      await user.populate('cart.items.productId')
     ).cart.items.map(item => {
       return {
         quantity: item.quantity,
@@ -109,13 +117,13 @@ exports.postOrder = async (req, res, next) => {
     });
     const order = new Order({
       user: {
-        email: req.user.email,
-        userId: req.user,
+        email: user.email,
+        userId: user,
       },
       products,
     });
     await order.save();
-    req.user.clearCart();
+    user.clearCart();
     res.status(200).json({ status: 'success' });
   } catch (err) {
     const error = new Error(err);
@@ -141,7 +149,7 @@ exports.getInvoice = async (req, res, next) => {
   if (!order) {
     return next(new Error('No order found!'));
   }
-  if (!order.user.userId.equals(req.user._id.toString())) {
+  if (!order.user.userId.equals(req.userId.toString())) {
     return next(new Error('Unauthorized'));
   }
   const invoiceName = `invoice-${orderId}.pdf`;

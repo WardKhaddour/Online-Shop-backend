@@ -68,7 +68,10 @@ exports.signup = async (req, res, next) => {
 
       data: {
         token,
-        user: { id: user._id, email },
+        user: {
+          id: user._id,
+          email,
+        },
       },
     });
   } catch (err) {
@@ -142,7 +145,7 @@ exports.checkPasswordToken = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({ message: 'unauthorized' });
     }
-    res.status(200).json({ passwordToken: token, userId: user._id.toString() });
+    res.status(200).json({ passwordToken: token, userId: userId.toString() });
   } catch (err) {
     const error = new Error(err);
     error.status = 500;

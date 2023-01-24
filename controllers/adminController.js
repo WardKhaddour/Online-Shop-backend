@@ -20,7 +20,7 @@ exports.postAddProduct = async (req, res, next) => {
       price,
       description,
       imageUrl,
-      userId: req.user._id,
+      userId: req.userId,
     });
     await product.save();
     res.status(200).json({ status: 'success' });
@@ -41,7 +41,7 @@ exports.postEditProduct = async (req, res, next) => {
     const { id, title, price, description } = req.body;
     const image = req.file;
     const product = await Product.findById(id);
-    if (product.userId.toString() !== req.user._id.toString()) {
+    if (product.userId.toString() !== req.userId.toString()) {
       return res.status(401).json({ message: 'unauthorized' });
     }
 
@@ -67,9 +67,9 @@ exports.deleteProduct = async (req, res, next) => {
     const { productId } = req.params;
     const product = await Product.findById(productId);
     if (!product) return next(new Error('Product not found'));
-    deleteFile(product.imageUrl);
 
-    await Product.deleteOne({ _id: productId, userId: req.user._id });
+    await Product.deleteOne({ _id: productId, userId: req.userId });
+    deleteFile(product.imageUrl);
 
     res.status(200).json({
       status: 'success',
@@ -83,7 +83,7 @@ exports.deleteProduct = async (req, res, next) => {
 
 exports.getProducts = async (req, res, next) => {
   try {
-    const products = await Product.find({ userId: req.user._id }).populate(
+    const products = await Product.find({ userId: req.userId }).populate(
       'userId'
     );
     res.status(200).json({

@@ -13,7 +13,7 @@ const MongoDB_URI = process.env.MONGODB_CONNECTION;
 
 const app = express();
 
-const csurfProtection = csurf({ cookie: true });
+// const csurfProtection = csurf({ cookie: true });
 
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -60,11 +60,11 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use(cookieParser());
 
-app.use(csurfProtection);
+// app.use(csurfProtection);
 
-app.get('/api/v1/getcsrftoken', csurfProtection, (req, res) =>
-  res.json({ csrfToken: req.csrfToken() })
-);
+// app.get('/api/v1/getcsrftoken', csurfProtection, (req, res) =>
+//   res.json({ csrfToken: req.csrfToken() })
+// );
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/shop', shopRoutes);
 app.use('/api/v1/auth', authRoutes);

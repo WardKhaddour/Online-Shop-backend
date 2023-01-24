@@ -11,7 +11,7 @@ const {
 
 const router = express.Router();
 
-router.get('/products', getProducts);
+router.get('/products', protect, getProducts);
 
 router.post(
   '/product',
@@ -19,7 +19,8 @@ router.post(
     body('title').isString().isLength({ min: 3 }).trim(),
     body('price').isFloat(),
     body('description').isLength({ min: 5, max: 400 }).trim(),
-  ],protect,
+  ],
+  protect,
   postAddProduct
 );
 
