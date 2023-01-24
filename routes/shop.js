@@ -1,37 +1,26 @@
 const express = require('express');
 const protect = require('../middleware/protect');
 
-const {
-  getAllProducts,
-  getProduct,
-  getIndex,
-  getCart,
-  getCheckout,
-  getOrders,
-  postCart,
-  deleteFromCart,
-  postOrder,
-  getInvoice,
-} = require('../controllers/shopController');
+const shopController = require('../controllers/shopController');
 
 const router = express.Router();
 
-router.get('/', getAllProducts);
+router.get('/', shopController.getAllProducts);
 
-router.get('/products', getAllProducts);
+router.get('/products', shopController.getAllProducts);
 
-router.get('/products/:productId', getProduct);
+router.get('/products/:productId', shopController.getProduct);
 
-router.get('/cart', protect, getCart);
+router.get('/cart', protect, shopController.getCart);
 
-router.post('/cart', protect, postCart);
+router.post('/cart', protect, shopController.postCart);
 
-router.delete('/cart/:productId', protect, deleteFromCart);
+router.delete('/cart/:productId', protect, shopController.deleteFromCart);
 
-router.post('/order', protect, postOrder);
+router.post('/order', protect, shopController.postOrder);
 
-router.get('/orders', protect, getOrders);
+router.get('/orders', protect, shopController.getOrders);
 
-router.get('/orders/:orderId', protect, getInvoice);
+router.get('/orders/:orderId', protect, shopController.getInvoice);
 
 module.exports = router;

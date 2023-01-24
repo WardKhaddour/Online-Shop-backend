@@ -2,14 +2,7 @@ const express = require('express');
 const { check, body } = require('express-validator');
 const User = require('../models/userModel');
 
-const {
-  postLogin,
-  postLogout,
-  postSignup,
-  resetPassword,
-  checkPasswordToken,
-  updatePassword,
-} = require('../controllers/authController');
+const authController = require('../controllers/authController');
 
 const router = express.Router();
 
@@ -28,7 +21,7 @@ router.post(
       .isAlphanumeric()
       .trim(),
   ],
-  postLogin
+  authController.login
 );
 router.post(
   '/signup',
@@ -36,12 +29,11 @@ router.post(
     check('email')
       .isEmail()
       .withMessage('Please enter a valid email')
-      .custom((value, { req }) => {
-        return User.findOne({ email: value }).then(userDoc => {
-          if (userDoc) {
-            return Promise.reject('email already exists');
-          }
-        });
+      .custom(async (value, { req }) => {
+        const userDoc = await User.findOne({ email: value });
+        if (userDoc) {
+          return Promise.reject('email already exists');
+        }
       })
       .normalizeEmail(),
     body(
@@ -60,10 +52,10 @@ router.post(
         return true;
       }),
   ],
-  postSignup
+  authController.signup
 );
-router.post('/logout', postLogout);
-router.post('/reset', resetPassword);
-router.get('/reset/:token', checkPasswordToken);
-router.post('/new-password', updatePassword);
+router.post('/logout', authController.logout);
+router.post('/reset', authController.resetPassword);
+router.get('/reset/:token', authController.checkPasswordToken);
+router.post('/new-password', authController.updatePassword);
 module.exports = router;

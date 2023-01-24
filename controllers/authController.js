@@ -4,8 +4,9 @@ const crypto = require('crypto');
 const { ObjectId } = require('mongodb');
 const nodemailer = require('nodemailer');
 const { validationResult } = require('express-validator');
+const jwt = require('jsonwebtoken');
 
-exports.postLogin = async (req, res, next) => {
+exports.login = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -21,20 +22,27 @@ exports.postLogin = async (req, res, next) => {
     if (!isValidPassword)
       return res.status(401).json({ message: 'Credential error' });
 
-    req.session.isLoggedIn = true;
-    req.session.user = user;
-    await req.session.save();
+    const token = jwt.sign(
+      { email, userId: user._id.toString() },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
     res.status(200).json({
-      Done: 'Done',
+      message: 'success',
+      data: {
+        token,
+        user: { id: user._id, email },
+      },
     });
   } catch (err) {
-        const error = new Error(err);
-        error.status = 500;
-        return next(error);
+    const error = new Error(err);
+    error.status = 500;
+    return next(error);
   }
 };
 
-exports.postSignup = async (req, res, next) => {
+exports.signup = async (req, res, next) => {
   const { email, password } = req.body;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -50,20 +58,35 @@ exports.postSignup = async (req, res, next) => {
       cart: { items: [] },
     });
     await user.save();
+    const token = jwt.sign(
+      { email, userId: user._id.toString() },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
     res.status(201).json({
       message: 'success',
+
+      data: {
+        token,
+        user: { id: user._id, email },
+      },
     });
   } catch (err) {
-        const error = new Error(err);
-        error.status = 500;
-        return next(error);
+    const error = new Error(err);
+    error.status = 500;
+    return next(error);
   }
 };
 
-exports.postLogout = (req, res, next) => {
-  req.session.destroy(err => {
-    res.status(200).json({ status: 'success' });
+exports.logout = (req, res, next) => {
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user: {},
+      token: undefined,
+    },
   });
+  // });
 };
 
 exports.resetPassword = async (req, res, next) => {
@@ -102,9 +125,9 @@ exports.resetPassword = async (req, res, next) => {
         res.status(200).json({ message: 'email sent successfully' });
       })
       .catch(err => {
-            const error = new Error(err);
-            error.status = 500;
-            return next(error);
+        const error = new Error(err);
+        error.status = 500;
+        return next(error);
       });
   });
 };
@@ -143,8 +166,8 @@ exports.updatePassword = async (req, res, next) => {
     console.log('Done');
     res.status(200).json({ message: 'password changed ' });
   } catch (err) {
-        const error = new Error(err);
-        error.status = 500;
-        return next(error);
+    const error = new Error(err);
+    error.status = 500;
+    return next(error);
   }
 };

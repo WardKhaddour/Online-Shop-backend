@@ -1,5 +1,6 @@
 const fs = require('fs');
 const Product = require('../models/productModel');
+const User = require('../models/userModel');
 const Order = require('../models/orderModel');
 const path = require('path');
 const PDFDocument = require('pdfkit');
@@ -61,8 +62,8 @@ exports.getIndex = async (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
-    const products = (await req.user.populate('cart.items.productId')).cart
-      .items;
+    const user = await User.findById(req.userId);
+    const products = (await user.populate('cart.items.productId')).cart.items;
     res.status(200).json({
       data: products,
     });
@@ -125,7 +126,7 @@ exports.postOrder = async (req, res, next) => {
 
 exports.getOrders = async (req, res, next) => {
   try {
-    const orders = await Order.find({ 'user.userId': req.user._id });
+    const orders = await Order.find({ 'user.userId': req.userId });
     res.status(200).json({ status: 'success', data: orders });
   } catch (err) {
     const error = new Error(err);
